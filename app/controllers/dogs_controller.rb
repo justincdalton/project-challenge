@@ -4,7 +4,12 @@ class DogsController < ApplicationController
   # GET /dogs
   # GET /dogs.json
   def index
-    @dogs = Dog.all
+    page = 0
+    if (params['page'])
+      page = params['page'].to_i - 1
+    end
+    @dogs = Dog.limit(5).offset(page * 5)
+    @ad_url = ActionController::Base.helpers.asset_url('ad.jpg')
   end
 
   # GET /dogs/1
@@ -19,12 +24,16 @@ class DogsController < ApplicationController
 
   # GET /dogs/1/edit
   def edit
+    if (@dog.user_id != current_user.id)
+      redirect_to "/404"
+    end
   end
 
   # POST /dogs
   # POST /dogs.json
   def create
     @dog = Dog.new(dog_params)
+    @dog.user = current_user
 
     respond_to do |format|
       if @dog.save
